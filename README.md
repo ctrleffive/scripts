@@ -4,28 +4,17 @@ Various scripts for personal automations.
 
 ## Available Scripts
 
-### 1. Mac Storage Scanner (`mss.sh`)
-A storage scanning utility that provides a detailed breakdown of disk usage across your system.
+### Mac Cleaner (`mc.sh`)
+A unified, interactive storage scanning and cleanup utility for macOS. It safely reclaims storage space by removing unneeded caches, temporary files, old package manager data, Docker artifacts, and large files. The output is elegantly formatted with ASCII branding and automatically sorted by size descending.
 
-**Usage:**
+**Default (Dry-Run / Scanner):**
+Running the script directly acts as a scanner. It will calculate the sizes of various caches and prompt you for custom directories to find heavy `node_modules` or large files (>200MB), without deleting anything.
 ```bash
-curl -sL https://scripts.chandujs.com/mss.sh | sudo bash
+curl -sL https://scripts.chandujs.com/mc.sh | sudo bash
 ```
 
-### 2. Mac Secure Cleanup (`msc.sh`)
-A cleanup script designed to safely reclaim storage space by removing unneeded caches, temporary files, and logs.
-
-**Live run:**
+**Interactive Cleanup (`--clean`):**
+Running with the `--clean` flag triggers interactive mode. For every scannable area that contains data, it will display the exact command or paths to be removed and prompt for your confirmation before proceeding.
 ```bash
-curl -sL https://scripts.chandujs.com/msc.sh | sudo bash
-```
-
-**Preview only (dry run):**
-```bash
-curl -sL https://scripts.chandujs.com/msc.sh | sudo bash -s -- --dry-run
-```
-
-**Show details (verbose):**
-```bash
-curl -sL https://scripts.chandujs.com/msc.sh | sudo bash -s -- --verbose
+curl -sL https://scripts.chandujs.com/mc.sh | sudo bash -s -- --clean
 ```
