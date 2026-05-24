@@ -2,9 +2,7 @@
 
 Various scripts for personal automations.
 
-## Available Scripts
-
-### Mac Cleaner (`mc.sh`)
+## 1. Mac Cleaner (`mc.sh`)
 A unified, interactive storage scanning and cleanup utility for macOS. It safely reclaims storage space by removing unneeded caches, temporary files, old package manager data, Docker artifacts, and large files. The output is elegantly formatted with ASCII branding and automatically sorted by size descending.
 
 **Default (Dry-Run / Scanner):**
