@@ -108,7 +108,7 @@ flush_tasks() {
             [[ -n "$native_cmd" ]] && prompt_cmd=" ${DIM}[run: $native_cmd]${RESET}"
             
             printf "  ${ICON_Q}  Clean %s (%s)?%b [y/N] " "$label" "$size_str" "$prompt_cmd"
-            read -rp "" confirm
+            read -rp "" confirm </dev/tty
 
             if [[ "$confirm" =~ ^[Yy]$ ]]; then
                 spinner_start "Cleaning $label..."
@@ -279,7 +279,7 @@ section "Custom Path Scan (Large Files & node_modules)"
 # ════════════════════════════════════════════════════════════
 echo -e "  ${DIM}Optionally enter a custom path to deep-scan for large files (>200MB)${RESET}"
 echo -e "  ${DIM}and heavy node_modules folders. Leave blank to skip.${RESET}"
-read -rp "  Custom path (e.g. ~/Projects): " custom_path
+read -rp "  Custom path (e.g. ~/Projects): " custom_path </dev/tty
 
 if [[ -n "$custom_path" ]]; then
     # Expand tilde
@@ -320,7 +320,7 @@ if [[ -n "$custom_path" ]]; then
                     printf "  %-10s  %s\n" "$size_str" "$short"
                 else
                     printf "  ${ICON_Q}  Delete %s (%s)? [y/N] " "$short" "$size_str"
-                    read -rp "" confirm
+                    read -rp "" confirm </dev/tty
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
                         rm -rf "$dir" 2>/dev/null || true
                         printf "  ${ICON_OK}  Deleted %s\n" "$short"
@@ -346,7 +346,7 @@ if [[ -n "$custom_path" ]]; then
                     printf "  %-10s  %s\n" "$size_str" "$short"
                 else
                     printf "  ${ICON_Q}  Delete %s (%s)? ${ICON_WARN} [y/N] " "$short" "$size_str"
-                    read -rp "" confirm
+                    read -rp "" confirm </dev/tty
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
                         rm -f "$f" 2>/dev/null || true
                         printf "  ${ICON_OK}  Deleted %s\n" "$short"
