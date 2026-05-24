@@ -84,7 +84,14 @@ flush_tasks() {
     local sorted_tasks
     sorted_tasks=$(printf "%s\n" "${SECTION_TASKS[@]}" | sort -nr -t'|' -k1,1)
 
-    while IFS= read -r task; do
+    local old_ifs="$IFS"
+    IFS=$'\n'
+    set -f
+    local tasks_arr=($sorted_tasks)
+    set +f
+    IFS="$old_ifs"
+
+    for task in "${tasks_arr[@]}"; do
         [[ -z "$task" ]] && continue
         
         local task_bytes="${task%%|*}"
@@ -128,7 +135,7 @@ flush_tasks() {
                 printf "  ${ICON_SKIP}  Skipped %s\n" "$label"
             fi
         fi
-    done <<< "$sorted_tasks"
+    done
 
     SECTION_TASKS=()
 }
@@ -311,9 +318,20 @@ if [[ -n "$custom_path" ]]; then
             echo -e "\n  ${BOLD}Heavy node_modules found:${RESET}"
             local sorted_nm
             sorted_nm=$(printf "%s\n" "${NM_LINES[@]}" | sort -nr -t'|' -k1,1)
-            while IFS= read -r entry; do
+            
+            local old_ifs="$IFS"
+            IFS=$'\n'
+            set -f
+            local nm_arr=($sorted_nm)
+            set +f
+            IFS="$old_ifs"
+            
+            for entry in "${nm_arr[@]}"; do
                 [[ -z "$entry" ]] && continue
-                IFS='|' read -r b short dir <<< "$entry"
+                local b="${entry%%|*}"
+                local remainder="${entry#*|}"
+                local short="${remainder%%|*}"
+                local dir="${remainder#*|}"
                 size_str=$(human_bytes "$b")
                 TOTAL_SCANNED=$(( TOTAL_SCANNED + b ))
                 if ! $LIVE_RUN; then
@@ -329,7 +347,7 @@ if [[ -n "$custom_path" ]]; then
                         printf "  ${ICON_SKIP}  Skipped %s\n" "$short"
                     fi
                 fi
-            done <<< "$sorted_nm"
+            done
         fi
         
         # Display & Prompt for Large Files
@@ -337,9 +355,20 @@ if [[ -n "$custom_path" ]]; then
             echo -e "\n  ${BOLD}Large files found (>200MB):${RESET}"
             local sorted_lf
             sorted_lf=$(printf "%s\n" "${LF_LINES[@]}" | sort -nr -t'|' -k1,1)
-            while IFS= read -r entry; do
+            
+            local old_ifs="$IFS"
+            IFS=$'\n'
+            set -f
+            local lf_arr=($sorted_lf)
+            set +f
+            IFS="$old_ifs"
+            
+            for entry in "${lf_arr[@]}"; do
                 [[ -z "$entry" ]] && continue
-                IFS='|' read -r b short f <<< "$entry"
+                local b="${entry%%|*}"
+                local remainder="${entry#*|}"
+                local short="${remainder%%|*}"
+                local f="${remainder#*|}"
                 size_str=$(human_bytes "$b")
                 TOTAL_SCANNED=$(( TOTAL_SCANNED + b ))
                 if ! $LIVE_RUN; then
@@ -355,7 +384,7 @@ if [[ -n "$custom_path" ]]; then
                         printf "  ${ICON_SKIP}  Skipped %s\n" "$short"
                     fi
                 fi
-            done <<< "$sorted_lf"
+            done
         fi
         
         if (( ${#NM_LINES[@]} == 0 && ${#LF_LINES[@]} == 0 )); then
