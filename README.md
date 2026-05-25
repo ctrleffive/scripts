@@ -3,16 +3,37 @@
 Various scripts for personal automations.
 
 ## 1. Mac Cleaner (`mc.sh`)
-A unified, interactive storage scanning and cleanup utility for macOS. It safely reclaims storage space by removing unneeded caches, temporary files, old package manager data, Docker artifacts, and large files. The output is elegantly formatted with ASCII branding and automatically sorted by size descending.
+A unified storage scanning and cleanup utility for macOS.
 
-**Default (Dry-Run / Scanner):**
-Running the script directly acts as a scanner. It will calculate the sizes of various caches and prompt you for custom directories to find heavy `node_modules` or large files (>200MB), without deleting anything.
+**Features:**
+- Cleans caches, temporary files, package managers, and Docker artifacts.
+- Identifies heavy and large files (>200MB).
+- Safe default scanner (dry-run mode).
+- Interactive cleanup mode for selective removal.
+
+**Usage:**
 ```bash
+# Dry Run
 curl -sL https://scripts.chandujs.com/mc.sh | sudo bash
+
+# Live Mode
+curl -sL https://scripts.chandujs.com/mc.sh | sudo bash -s -- --clean
 ```
 
-**Interactive Cleanup (`--clean`):**
-Running with the `--clean` flag triggers interactive mode. For every scannable area that contains data, it will display the exact command or paths to be removed and prompt for your confirmation before proceeding.
+## 2. RAM Disk Downloads (`ram.sh`)
+Backs up `~/Downloads`, mounts a RAM disk, and symlinks it for volatile, high-speed storage.
+
+**Features:**
+- Safely backs up existing `~/Downloads` folder.
+- Mounts a customizable RAM disk (default: 10GB).
+- Supports macOS (`hdiutil`) and Linux (`tmpfs`).
+- Protects against filling up RAM (>80% warning).
+
+**Usage:**
 ```bash
-curl -sL https://scripts.chandujs.com/mc.sh | sudo bash -s -- --clean
+# Default 10GB
+curl -sL https://scripts.chandujs.com/ram.sh | bash
+
+# Custom Size (e.g., 4GB)
+curl -sL https://scripts.chandujs.com/ram.sh | bash -s -- 4g
 ```
