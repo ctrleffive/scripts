@@ -27,7 +27,7 @@ ask() {
     # ask <varname> <prompt>
     local _var="$1"; shift
     echo -ne "  ${CYAN}?${RESET}  $* ${DIM}[y/N]${RESET}: "
-    read -r "$_var"
+    read -r "$_var" < /dev/tty
 }
 
 banner() { echo -e "\n${BOLD}$*${RESET}\n"; }
