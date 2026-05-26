@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ctrl F5 Scripts — Shell Scripts for macOS & Linux</title>
-    <meta name="description" content="A curated collection of useful shell scripts for macOS and Linux. Instantly run any script with a single terminal command.">
+    <title>Ctrl F5 Scripts </title>
+    <meta name="description" content="A curated collection of useful shell scripts. Instantly run any script with a single terminal command.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -153,53 +153,6 @@
         .copy-btn:hover { background: rgba(0, 229, 160, 0.2); }
         .copy-btn.copied { background: rgba(0, 229, 160, 0.3); }
 
-        /* ── Scripts ────────────────────────────────────── */
-        .section-title {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .script-card {
-            background: var(--surface);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 1.2rem 1.4rem;
-            margin-bottom: 0.6rem;
-        }
-
-        .script-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .badge {
-            font-size: 0.6rem;
-            padding: 0.12rem 0.45rem;
-            border-radius: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .badge.sudo {
-            background: rgba(255, 180, 50, 0.12);
-            color: #ffb432;
-            border: 1px solid rgba(255, 180, 50, 0.18);
-        }
-
-        .script-desc {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
 
         /* ── Footer ─────────────────────────────────────── */
         .footer {
@@ -229,7 +182,7 @@
     <div class="container">
         <header class="header">
             <div class="logo">ctrleffive <span>scripts</span></div>
-            <p class="tagline">Shell scripts for macOS & Linux</p>
+            <p class="tagline">A curated collection of useful shell scripts.</p>
         </header>
 
         <div class="command-block" id="commandBlock">
@@ -240,22 +193,15 @@
             <button class="copy-btn" id="copyBtn" onclick="copyCommand()">Copy</button>
         </div>
 
-        <div class="scripts-section">
-            <div class="section-title">Available Scripts</div>
-
-            <div id="scriptsList"></div>
-        </div>
 
         <footer class="footer">
             <a href="https://github.com/ctrleffive/scripts" target="_blank" rel="noopener">GitHub</a>
+            &nbsp;•&nbsp;
+            <a href="https://chandujs.com" target="_blank" rel="noopener">Chandu J S</a>
         </footer>
     </div>
 
     <script>
-        const SCRIPTS = [
-            { name: 'Mac Cleaner', desc: 'Scan and clean system junk, caches, and temporary files on macOS.', sudo: true },
-            { name: 'RAM Disk Downloads', desc: 'Mount a high-speed RAM disk as ~/Downloads for volatile storage.', sudo: false },
-        ];
 
         const CMD = 'curl -sL chandujs.com/s | bash';
         const el = document.getElementById('commandText');
@@ -283,15 +229,7 @@
             });
         }
 
-        document.getElementById('scriptsList').innerHTML = SCRIPTS.map(s => `
-            <div class="script-card">
-                <div class="script-name">
-                    ${s.name}
-                    ${s.sudo ? '<span class="badge sudo">sudo</span>' : ''}
-                </div>
-                <div class="script-desc">${s.desc}</div>
-            </div>
-        `).join('');
+
     </script>
 </body>
 </html>

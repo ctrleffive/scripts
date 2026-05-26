@@ -18,7 +18,7 @@ SCRIPTS=(
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
-CYAN='\033[0;36m'; BOLD='\033[1m'; DIM='\033[2m'; RESET='\033[0m'
+CYAN='\033[38;2;0;229;160m'; BOLD='\033[1m'; DIM='\033[2m'; RESET='\033[0m'
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 ok()   { echo -e "  ${GREEN}✔${RESET}  $*"; }
@@ -57,17 +57,22 @@ TMP_DIR=""
 cleanup() {
     spinner_stop 2>/dev/null || true
     [[ -n "$TMP_DIR" ]] && rm -rf "$TMP_DIR" 2>/dev/null || true
+    clear
 }
 trap cleanup EXIT
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
     clear
-    echo ""
-    echo -e "  ${CYAN}${BOLD}⚡ CTRL F5 SCRIPTS${RESET}"
-    echo -e "  ${DIM}scripts.chandujs.com${RESET}"
-    echo ""
-    echo -e "  ${DIM}$(printf '─%.0s' {1..44})${RESET}"
+    echo -e "${CYAN}${BOLD}"
+    cat << "EOF"
+  ███████  ██████ ██████  ██ ██████  ████████ ███████ 
+  ██      ██      ██   ██ ██ ██   ██    ██    ██      
+  ███████ ██      ██████  ██ ██████     ██    ███████ 
+       ██ ██      ██   ██ ██ ██         ██         ██ 
+  ███████  ██████ ██   ██ ██ ██         ██    ███████ 
+EOF
+    echo -e "${RESET}"
     echo ""
 
     # ── Download all scripts ──────────────────────────────────────────────────
@@ -100,12 +105,12 @@ main() {
         local sudo_badge=""
         [[ "${sudos[$i]}" == "true" ]] && sudo_badge=" ${YELLOW}${DIM}sudo${RESET}"
 
-        echo -e "  ${CYAN}${BOLD} ${num} ${RESET}  ${BOLD}${names[$i]}${RESET}${sudo_badge}"
-        echo -e "       ${DIM}${descs[$i]}${RESET}"
+        echo -e "  ${CYAN}${BOLD}$(printf '%-2d' "$num")${RESET} ${BOLD}${names[$i]}${RESET}${sudo_badge}"
+        echo -e "     ${DIM}${descs[$i]}${RESET}"
         echo ""
     done
 
-    echo -e "  ${DIM}$(printf '─%.0s' {1..44})${RESET}"
+    echo -e "  ${DIM}${RESET}"
     echo ""
 
     # ── Selection ─────────────────────────────────────────────────────────────
