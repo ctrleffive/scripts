@@ -5,9 +5,10 @@ The `ram.sh` script provides a way to temporarily use a high-speed RAM disk for 
 
 ## Features
 - **Automatic Backups**: Safely backs up the existing `~/Downloads` folder before proceeding.
-- **Cross-Platform Support**: Works on both macOS (using `hdiutil`) and Linux (using `tmpfs`).
+- **Failure Recovery**: If the script fails mid-way (after backup but before symlinking), a trap handler automatically restores `~/Downloads` from the backup to prevent data loss.
+- **Cross-Platform Support**: Works on both macOS (using `hdiutil` with APFS format) and Linux (using `tmpfs`). On Linux, sudo access is verified upfront before any changes are made.
 - **Customizable Size**: The default RAM disk size is 10 GB, but you can specify custom sizes (e.g., `4g` or `512m`).
-- **Safety Checks**: Includes a RAM headroom check that warns the user if the requested size exceeds 80% of available RAM to prevent system instability.
+- **Accurate RAM Check**: Checks actual available memory (via `vm_stat` on macOS, `MemAvailable` on Linux) — not total installed RAM — and warns if the requested size exceeds 80% of what's free.
 - **Volatile Storage**: Data stored in the `~/Downloads` folder while this is active is lost on reboot, enforcing a temporary lifecycle for downloaded files.
 
 ## Usage

@@ -32,6 +32,27 @@ ask() {
 
 banner() { echo -e "\n${BOLD}$*${RESET}\n"; }
 
+# ── State tracking & cleanup ──────────────────────────────────────────────────
+BACKUP_DONE=false
+SYMLINK_DONE=false
+SCRIPT_SUCCESS=false
+BACKUP_PATH=""
+
+cleanup_on_failure() {
+    $SCRIPT_SUCCESS && return
+    if $BACKUP_DONE && ! $SYMLINK_DONE && [[ -n "${BACKUP_PATH:-}" ]]; then
+        echo ""
+        warn "Failure detected — restoring ~/Downloads from backup..."
+        if [[ ! -e "${HOME}/Downloads" ]] && [[ -d "$BACKUP_PATH" ]]; then
+            mv -- "$BACKUP_PATH" "${HOME}/Downloads" \
+                && ok "Restored ~/Downloads successfully." \
+                || warn "Auto-restore failed. Manually run: mv \"${BACKUP_PATH}\" ~/Downloads"
+        fi
+    fi
+}
+
+trap cleanup_on_failure EXIT
+
 # ── Spinner ───────────────────────────────────────────────────────────────────
 SPINNER_PID=""
 spinner_start() {
@@ -46,7 +67,7 @@ spinner_start() {
 }
 spinner_stop() {
     if [[ -n "$SPINNER_PID" ]]; then
-        kill "$SPINNER_PID" 2>/dev/null || true
+        kill -0 "$SPINNER_PID" 2>/dev/null && kill "$SPINNER_PID" 2>/dev/null
         wait "$SPINNER_PID" 2>/dev/null || true
         SPINNER_PID=""
     fi
@@ -87,7 +108,16 @@ check_ram() {
     local available_bytes
 
     if [[ "$OS" == "macos" ]]; then
-        available_bytes=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
+        # Use vm_stat to approximate available memory (free + inactive pages)
+        local page_size free_pages inactive_pages
+        page_size=$(sysctl -n hw.pagesize 2>/dev/null || echo 4096)
+        free_pages=$(vm_stat 2>/dev/null | awk '/Pages free/ {gsub(/\./,"",$3); print $3}')
+        inactive_pages=$(vm_stat 2>/dev/null | awk '/Pages inactive/ {gsub(/\./,"",$3); print $3}')
+        available_bytes=$(( (${free_pages:-0} + ${inactive_pages:-0}) * page_size ))
+        # Fallback to total physical RAM if vm_stat returned nothing useful
+        if (( available_bytes == 0 )); then
+            available_bytes=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
+        fi
     else
         available_bytes=$(awk '/MemAvailable/ {print $2 * 1024}' /proc/meminfo 2>/dev/null || echo 0)
     fi
@@ -153,6 +183,7 @@ backup_downloads() {
     fi
 
     ok "Backed up to ${BOLD}~/${BACKUP_NAME}${RESET}"
+    BACKUP_DONE=true
 }
 
 # ── macOS: hdiutil RAM disk ───────────────────────────────────────────────────
@@ -167,11 +198,11 @@ create_ramdisk_macos() {
     spinner_stop
     ok "RAM device attached: ${DIM}${dev}${RESET}"
 
-    spinner_start "Formatting ${dev} as HFS+…"
-    diskutil eraseDisk JHFS+ RAMDisk "${dev}" >/dev/null \
+    spinner_start "Formatting ${dev} as APFS…"
+    diskutil eraseDisk APFS RAMDisk "${dev}" >/dev/null \
         || { spinner_stop; die "diskutil format failed on ${dev}."; }
     spinner_stop
-    ok "Formatted and mounted at ${BOLD}/Volumes/RAMDisk${RESET}"
+    ok "Formatted (APFS) and mounted at ${BOLD}/Volumes/RAMDisk${RESET}"
 
     RAMDISK_MOUNT="/Volumes/RAMDisk"
 }
@@ -210,6 +241,7 @@ create_symlink() {
 
     ln -s "$RAMDISK_MOUNT" "$downloads" \
         || die "Failed to create symlink."
+    SYMLINK_DONE=true
     ok "Symlink created: ${BOLD}~/Downloads${RESET} → ${RAMDISK_MOUNT}"
 }
 
@@ -240,6 +272,9 @@ main() {
 
     parse_size "${1:-10}"
     detect_os
+    if [[ "$OS" == "linux" ]]; then
+        sudo -v 2>/dev/null || die "sudo access required on Linux for mount operations."
+    fi
     check_ram
 
     echo -e "  ${DIM}Will back up ~/Downloads, mount a ${SIZE_HUMAN} RAM disk, and symlink.${RESET}"
@@ -257,6 +292,7 @@ main() {
     fi
 
     create_symlink
+    SCRIPT_SUCCESS=true
     print_warnings
 
     ok "${BOLD}Done.${RESET}  ~/Downloads is now a ${SIZE_HUMAN} RAM disk."

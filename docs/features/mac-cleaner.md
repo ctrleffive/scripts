@@ -9,7 +9,8 @@
 - **Dry-Run by Default:** Running the script directly `sudo ./mc.sh` simply scans and lists the sizes of the components without modifying or deleting any files.
 - **Interactive Deletion:** Running the script with `sudo ./mc.sh --clean` triggers live mode. It individually prompts the user for confirmation (`[y/N]`) before proceeding with the deletion of each categorized area.
 - **Native Command Visibility:** When dealing with environments like Docker or Package Managers, the script prints the exact native command it intends to run (e.g., `docker system prune -f`) inside the confirmation prompt so the user has full transparency.
-- **Custom Deep Scanning:** The script interactively asks if the user wants to scan a custom target directory (like `~/Projects`) for excessively heavy `node_modules` folders or individual files larger than `200MB`. Leaving the prompt blank safely skips the action.
+- **Custom Deep Scanning:** The script interactively asks if the user wants to scan a custom target directory (like `~/Projects`) for excessively heavy `node_modules` folders or individual files larger than `200MB`. Leaving the prompt blank safely skips the action. This prompt is automatically skipped in non-interactive (no TTY) environments.
+- **Safe Execution:** All file deletions use properly quoted paths (no `eval`). Temporary directory cleanup targets contents only, preserving the system directories themselves. Time Machine snapshots are deleted individually by date for compatibility with modern macOS.
 
 ## UI / Aesthetics
 The script uses a minimal, color-coded terminal interface with the following elements:

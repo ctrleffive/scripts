@@ -35,16 +35,9 @@ HOME_DIR=$(eval echo "~$CURRENT_USER")
 
 # ── Size helpers ─────────────────────────────────────────────
 get_bytes() {
-    local total=0
-    shopt -s nullglob
-    for p in $1; do
-        [[ -e "$p" ]] || continue
-        local b
-        b=$(du -sk "$p" 2>/dev/null | awk '{printf "%d", $1*1024}')
-        total=$(( total + b ))
-    done
-    shopt -u nullglob
-    echo $total
+    local p="$1"
+    [[ -e "$p" ]] || { echo 0; return; }
+    du -sk "$p" 2>/dev/null | awk '{printf "%d", $1*1024}'
 }
 
 human_bytes() {
@@ -69,7 +62,7 @@ spinner_start() {
 }
 spinner_stop() {
     if [[ -n "$SPINNER_PID" ]]; then
-        kill "$SPINNER_PID" 2>/dev/null || true
+        kill -0 "$SPINNER_PID" 2>/dev/null && kill "$SPINNER_PID" 2>/dev/null
         wait "$SPINNER_PID" 2>/dev/null || true
         SPINNER_PID=""
     fi
@@ -123,10 +116,12 @@ flush_tasks() {
                     if [[ "$native_cmd" == brew* || "$native_cmd" == npm* || "$native_cmd" == pnpm* || "$native_cmd" == pod* ]]; then
                         sudo -u "$CURRENT_USER" bash -c "$native_cmd" &>/dev/null || true
                     else
-                        eval "$native_cmd" &>/dev/null || true
+                        bash -c "$native_cmd" &>/dev/null || true
                     fi
                 else
-                    eval "rm -rf $actual_paths" 2>/dev/null || true
+                    while IFS= read -r _path; do
+                        [[ -n "$_path" ]] && rm -rf "$_path" 2>/dev/null || true
+                    done <<< "$actual_paths"
                 fi
                 spinner_stop
                 printf "  ${ICON_OK}  Cleaned %s ${DIM}(%s)${RESET}\n" "$label" "$size_str"
@@ -169,7 +164,8 @@ run_task() {
         for expanded in $p; do
             [[ -e "$expanded" ]] || continue
             found=true
-            actual_paths="$actual_paths \"$expanded\""
+            [[ -n "$actual_paths" ]] && actual_paths="${actual_paths}"$'\n'
+            actual_paths="${actual_paths}${expanded}"
             local b
             b=$(get_bytes "$expanded")
             task_bytes=$(( task_bytes + b ))
@@ -203,7 +199,8 @@ run_tm_task() {
     spinner_stop
     if (( TM_COUNT > 0 )); then
         TOTAL_SCANNED=$(( TOTAL_SCANNED + TM_BYTES ))
-        SECTION_TASKS+=("${TM_BYTES}|Time Machine snapshots ($TM_COUNT)|tmutil deletelocalsnapshots /|")
+        local tm_cmd='tmutil listlocalsnapshots / 2>/dev/null | grep "com.apple" | while IFS= read -r snap; do tmutil deletelocalsnapshots "${snap##*.}" 2>/dev/null || true; done'
+        SECTION_TASKS+=("${TM_BYTES}|Time Machine snapshots ($TM_COUNT)|${tm_cmd}|")
     fi
 }
 
@@ -237,7 +234,7 @@ run_task "System Caches" "" "/Library/Caches/" "/System/Library/Caches/com.apple
 section "Logs & Temp Files"
 # ════════════════════════════════════════════════════════════
 run_task "Application Logs" "" "${HOME_DIR}/Library/Logs/" "/Library/Logs/" "/var/log/asl/"
-run_task "Temporary Files" "" "/private/tmp/" "/private/var/tmp/" "${TMPDIR:-/tmp}/"
+run_task "Temporary Files" "find /private/tmp /private/var/tmp ${TMPDIR:-/tmp} -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true" "/private/tmp/" "/private/var/tmp/" "${TMPDIR:-/tmp}/"
 run_task "Browser Caches" "" "${HOME_DIR}/Library/Caches/com.apple.Safari/" "${HOME_DIR}/Library/Application Support/Google/Chrome/Default/Cache/" "${HOME_DIR}/Library/Application Support/BraveSoftware/Brave-Browser/Default/Cache/" "${HOME_DIR}/Library/Application Support/Firefox/Profiles/*/cache2/"
 run_task "Mail Attachments" "" "${HOME_DIR}/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/" "${HOME_DIR}/Library/Mail/V*/MailData/Attachments/"
 run_task "Diagnostic Reports" "" "${HOME_DIR}/Library/Logs/DiagnosticReports/" "/Library/Logs/DiagnosticReports/" "/Library/Logs/CrashReporter/"
@@ -259,7 +256,11 @@ run_docker_task
 # ════════════════════════════════════════════════════════════
 section "Package Manager Caches"
 # ════════════════════════════════════════════════════════════
-run_task "Homebrew Cache" "brew cleanup" "$(sudo -u "$CURRENT_USER" brew --cache 2>/dev/null || echo /dev/null)"
+if command -v brew &>/dev/null; then
+    run_task "Homebrew Cache" "brew cleanup" "$(sudo -u "$CURRENT_USER" brew --cache 2>/dev/null || echo "${HOME_DIR}/Library/Caches/Homebrew")"
+else
+    run_task "Homebrew Cache" "brew cleanup" "${HOME_DIR}/Library/Caches/Homebrew/"
+fi
 run_task "npm Cache" "npm cache clean --force" "${HOME_DIR}/.npm/_cacache/"
 run_task "pnpm Store" "pnpm store prune" "${HOME_DIR}/Library/pnpm/store/" "${HOME_DIR}/.pnpm-store/"
 run_task "Bun Cache" "rm -rf ${HOME_DIR}/Library/Caches/bun" "${HOME_DIR}/Library/Caches/bun/"
@@ -284,9 +285,12 @@ run_task "${ICON_WARN} iOS Device Backups" "" "${HOME_DIR}/Library/Application S
 # ════════════════════════════════════════════════════════════
 section "Custom Path Scan (Large Files & node_modules)"
 # ════════════════════════════════════════════════════════════
-echo -e "  ${DIM}Optionally enter a custom path to deep-scan for large files (>200MB)${RESET}"
-echo -e "  ${DIM}and heavy node_modules folders. Leave blank to skip.${RESET}"
-read -rp "  Custom path (e.g. ~/Projects): " custom_path </dev/tty
+custom_path=""
+if [[ -t 1 ]]; then
+    echo -e "  ${DIM}Optionally enter a custom path to deep-scan for large files (>200MB)${RESET}"
+    echo -e "  ${DIM}and heavy node_modules folders. Leave blank to skip.${RESET}"
+    read -rp "  Custom path (e.g. ~/Projects): " custom_path </dev/tty 2>/dev/null || custom_path=""
+fi
 
 if [[ -n "$custom_path" ]]; then
     # Expand tilde
@@ -316,22 +320,21 @@ if [[ -n "$custom_path" ]]; then
         # Display & Prompt for Node Modules
         if (( ${#NM_LINES[@]} > 0 )); then
             echo -e "\n  ${BOLD}Heavy node_modules found:${RESET}"
-            local sorted_nm
             sorted_nm=$(printf "%s\n" "${NM_LINES[@]}" | sort -nr -t'|' -k1,1)
             
-            local old_ifs="$IFS"
+            old_ifs="$IFS"
             IFS=$'\n'
             set -f
-            local nm_arr=($sorted_nm)
+            nm_arr=($sorted_nm)
             set +f
             IFS="$old_ifs"
             
             for entry in "${nm_arr[@]}"; do
                 [[ -z "$entry" ]] && continue
-                local b="${entry%%|*}"
-                local remainder="${entry#*|}"
-                local short="${remainder%%|*}"
-                local dir="${remainder#*|}"
+                b="${entry%%|*}"
+                remainder="${entry#*|}"
+                short="${remainder%%|*}"
+                dir="${remainder#*|}"
                 size_str=$(human_bytes "$b")
                 TOTAL_SCANNED=$(( TOTAL_SCANNED + b ))
                 if ! $LIVE_RUN; then
@@ -353,22 +356,21 @@ if [[ -n "$custom_path" ]]; then
         # Display & Prompt for Large Files
         if (( ${#LF_LINES[@]} > 0 )); then
             echo -e "\n  ${BOLD}Large files found (>200MB):${RESET}"
-            local sorted_lf
             sorted_lf=$(printf "%s\n" "${LF_LINES[@]}" | sort -nr -t'|' -k1,1)
             
-            local old_ifs="$IFS"
+            old_ifs="$IFS"
             IFS=$'\n'
             set -f
-            local lf_arr=($sorted_lf)
+            lf_arr=($sorted_lf)
             set +f
             IFS="$old_ifs"
             
             for entry in "${lf_arr[@]}"; do
                 [[ -z "$entry" ]] && continue
-                local b="${entry%%|*}"
-                local remainder="${entry#*|}"
-                local short="${remainder%%|*}"
-                local f="${remainder#*|}"
+                b="${entry%%|*}"
+                remainder="${entry#*|}"
+                short="${remainder%%|*}"
+                f="${remainder#*|}"
                 size_str=$(human_bytes "$b")
                 TOTAL_SCANNED=$(( TOTAL_SCANNED + b ))
                 if ! $LIVE_RUN; then
