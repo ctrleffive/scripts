@@ -12,7 +12,8 @@ trigger: always_on
 ├── serve.sh            # Local dev server
 ├── scripts/            # All user-facing scripts
 │   ├── mc.sh
-│   └── ram.sh
+│   ├── ram.sh
+│   └── pk.sh
 └── docs/features/      # Feature documentation
 ```
 

@@ -14,6 +14,7 @@ BASE_URL="https://scripts.chandujs.com/scripts"
 SCRIPTS=(
     "mc.sh"
     "ram.sh"
+    "pk.sh"
 )
 
 # ── Colours ───────────────────────────────────────────────────────────────────

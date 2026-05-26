@@ -12,3 +12,4 @@ curl -sL chandujs.com/s | bash
 
 - **Mac Cleaner** — Scan and clean system junk, caches, and temporary files
 - **RAM Disk Downloads** — Mount a high-speed RAM disk as ~/Downloads
+- **Port Killer** — Find and kill processes listening on TCP ports
