@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ctrl F5 Scripts — Shell Scripts for macOS & Linux</title>
+    <meta name="description" content="A curated collection of useful shell scripts for macOS and Linux. Instantly run any script with a single terminal command.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0e17;
+            --surface: #131a2b;
+            --border: rgba(0, 229, 160, 0.15);
+            --primary: #00e5a0;
+            --primary-glow: rgba(0, 229, 160, 0.08);
+            --text: #e0e6ed;
+            --text-secondary: #6b7b8d;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(0, 229, 160, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 160, 0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 580px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo span { color: var(--text-secondary); font-weight: 400; }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* ── Command Block ──────────────────────────────── */
+        .command-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .command-block:hover {
+            border-color: rgba(0, 229, 160, 0.35);
+            box-shadow: 0 0 40px var(--primary-glow);
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at center, var(--primary-glow), transparent 70%);
+            pointer-events: none;
+        }
+
+        .command-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .command-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--primary);
+            word-break: break-all;
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+
+        .command-text .prompt { color: var(--text-secondary); }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: var(--primary);
+            vertical-align: text-bottom;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(0, 229, 160, 0.1);
+            border: 1px solid rgba(0, 229, 160, 0.2);
+            color: var(--primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 2;
+        }
+
+        .copy-btn:hover { background: rgba(0, 229, 160, 0.2); }
+        .copy-btn.copied { background: rgba(0, 229, 160, 0.3); }
+
+        /* ── Scripts ────────────────────────────────────── */
+        .section-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .script-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.2rem 1.4rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .script-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .badge {
+            font-size: 0.6rem;
+            padding: 0.12rem 0.45rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.sudo {
+            background: rgba(255, 180, 50, 0.12);
+            color: #ffb432;
+            border: 1px solid rgba(255, 180, 50, 0.18);
+        }
+
+        .script-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* ── Footer ─────────────────────────────────────── */
+        .footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            margin-top: 2.5rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .footer a:hover { opacity: 0.7; }
+
+        /* ── Responsive ─────────────────────────────────── */
+        @media (max-width: 480px) {
+            .logo { font-size: 1.7rem; }
+            .command-text { font-size: 0.78rem; }
+            body { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">ctrleffive <span>scripts</span></div>
+            <p class="tagline">Shell scripts for macOS & Linux</p>
+        </header>
+
+        <div class="command-block" id="commandBlock">
+            <div class="command-label">Run in your terminal</div>
+            <div class="command-text">
+                <span class="prompt">$ </span><span id="commandText"></span><span class="cursor"></span>
+            </div>
+            <button class="copy-btn" id="copyBtn" onclick="copyCommand()">Copy</button>
+        </div>
+
+        <div class="scripts-section">
+            <div class="section-title">Available Scripts</div>
+
+            <div id="scriptsList"></div>
+        </div>
+
+        <footer class="footer">
+            <a href="https://github.com/ctrleffive/scripts" target="_blank" rel="noopener">GitHub</a>
+        </footer>
+    </div>
+
+    <script>
+        const SCRIPTS = [
+            { name: 'Mac Cleaner', desc: 'Scan and clean system junk, caches, and temporary files on macOS.', sudo: true },
+            { name: 'RAM Disk Downloads', desc: 'Mount a high-speed RAM disk as ~/Downloads for volatile storage.', sudo: false },
+        ];
+
+        const CMD = 'curl -sL chandujs.com/s | bash';
+        const el = document.getElementById('commandText');
+        let idx = 0;
+
+        function typeChar() {
+            if (idx < CMD.length) {
+                el.textContent += CMD[idx];
+                idx++;
+                setTimeout(typeChar, 28 + Math.random() * 32);
+            }
+        }
+
+        setTimeout(typeChar, 600);
+
+        function copyCommand() {
+            navigator.clipboard.writeText(CMD).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        document.getElementById('scriptsList').innerHTML = SCRIPTS.map(s => `
+            <div class="script-card">
+                <div class="script-name">
+                    ${s.name}
+                    ${s.sudo ? '<span class="badge sudo">sudo</span>' : ''}
+                </div>
+                <div class="script-desc">${s.desc}</div>
+            </div>
+        `).join('');
+    </script>
+</body>
+</html>
