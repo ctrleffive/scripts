@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+# @name RAM Disk Downloads
+# @desc Mount a high-speed RAM disk as ~/Downloads for volatile storage
+# @sudo false
 # =============================================================================
-#  ram.sh
-#  Backs up ~/Downloads, mounts a RAM disk, and symlinks Downloads → RAM disk.
+#  ram.sh — Backs up ~/Downloads, mounts a RAM disk, and symlinks Downloads → RAM disk.
 #
 #  Usage:
 #    ./ram.sh            # uses default 10 GB
@@ -21,7 +23,7 @@ CYAN='\033[0;36m'; BOLD='\033[1m'; DIM='\033[2m'; RESET='\033[0m'
 # ── Icons ─────────────────────────────────────────────────────────────────────
 ok()   { echo -e "  ${GREEN}✔${RESET}  $*"; }
 warn() { echo -e "  ${YELLOW}!${RESET}  $*"; }
-die()  { echo -e "  ${RED}!${RESET}  $*" >&2; exit 1; }
+die()  { echo -e "\n  ${RED}✖${RESET}  $*" >&2; exit 1; }
 
 ask() {
     # ask <varname> <prompt>

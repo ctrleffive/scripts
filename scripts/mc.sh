@@ -1,10 +1,13 @@
 #!/bin/bash
+# @name Mac Cleaner
+# @desc Scan and clean system junk, caches, and temporary files on macOS
+# @sudo true
 # ============================================================
 #  mc.sh — Mac Cleaner (Interactive & Dry-Run)
 #
 #  Usage:
-#    sudo ./mc.sh          # Full system scan (Dry-Run)
-#    sudo ./mc.sh --clean  # Interactive Cleanup Mode
+#    ./mc.sh          # Full system scan (Dry-Run)
+#    ./mc.sh --clean  # Interactive Cleanup Mode
 # ============================================================
 
 set -uo pipefail
@@ -26,8 +29,13 @@ ICON_SKIP="${DIM}[-]${RESET}"
 
 # ── Root check ───────────────────────────────────────────────
 if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}✖${RESET}  Please run with sudo: sudo $0"
-    exit 1
+    echo -e "${YELLOW}⚡${RESET} Root access required. Requesting sudo..."
+    if [[ -f "$0" ]]; then
+        exec sudo bash "$0" "$@"
+    else
+        echo -e "${RED}✖${RESET}  This script requires root. Please run with: sudo bash <script>"
+        exit 1
+    fi
 fi
 
 CURRENT_USER="${SUDO_USER:-$(logname 2>/dev/null || echo "$USER")}"
