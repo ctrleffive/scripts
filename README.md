@@ -1,39 +1,14 @@
 # Ctrl F5 Scripts
 
-Various scripts for personal automations.
+A curated collection of shell scripts for macOS & Linux.
 
-## 1. Mac Cleaner (`mc.sh`)
-A unified storage scanning and cleanup utility for macOS.
+## Quick Start
 
-**Features:**
-- Cleans caches, temporary files, package managers, and Docker artifacts.
-- Identifies heavy and large files (>200MB).
-- Safe default scanner (dry-run mode).
-- Interactive cleanup mode for selective removal.
-
-**Usage:**
 ```bash
-# Dry Run
-curl -sL https://scripts.chandujs.com/mc.sh | sudo bash
-
-# Live Mode
-curl -sL https://scripts.chandujs.com/mc.sh | sudo bash -s -- --clean
+curl -sL chandujs.com/s | bash
 ```
 
-## 2. RAM Disk Downloads (`ram.sh`)
-Backs up `~/Downloads`, mounts a RAM disk, and symlinks it for volatile, high-speed storage.
+## Available Scripts
 
-**Features:**
-- Safely backs up existing `~/Downloads` folder.
-- Mounts a customizable RAM disk (default: 10GB).
-- Supports macOS (`hdiutil`) and Linux (`tmpfs`).
-- Protects against filling up RAM (>80% warning).
-
-**Usage:**
-```bash
-# Default 10GB
-curl -sL https://scripts.chandujs.com/ram.sh | bash
-
-# Custom Size (e.g., 4GB)
-curl -sL https://scripts.chandujs.com/ram.sh | bash -s -- 4g
-```
+- **Mac Cleaner** — Scan and clean system junk, caches, and temporary files
+- **RAM Disk Downloads** — Mount a high-speed RAM disk as ~/Downloads
