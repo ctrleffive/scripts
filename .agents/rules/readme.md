@@ -23,13 +23,15 @@ Every script in `scripts/` MUST have these metadata comments right after the she
 # @name Script Name
 # @desc One-line description
 # @sudo true|false
+# @os macos,linux
 ```
 - `@name` — Display name shown in the launcher and landing page
 - `@desc` — One-line description
 - `@sudo` — Whether root privileges are needed
+- `@os` — Comma-separated list of supported operating systems (e.g. `macos`, `linux`)
 
 ## Adding a New Script
-1. Create the script in `scripts/` with `@name`, `@desc`, `@sudo` metadata.
+1. Create the script in `scripts/` with `@name`, `@desc`, `@sudo`, `@os` metadata.
 2. Add the filename to the `SCRIPTS` array in `run.sh`.
 3. Add an entry to the `SCRIPTS` array in `index.html`.
 4. Update `README.md` script list.

@@ -2,6 +2,7 @@
 # @name Mac Cleaner
 # @desc Scan and clean system junk, caches, and temporary files on macOS
 # @sudo true
+# @os macos
 # ============================================================
 #  mc.sh — Mac Cleaner (Interactive & Dry-Run)
 #
@@ -127,9 +128,9 @@ flush_tasks() {
                         bash -c "$native_cmd" &>/dev/null || true
                     fi
                 else
-                    while IFS= read -r _path; do
+                    while IFS=$'\t' read -r _path; do
                         [[ -n "$_path" ]] && rm -rf "$_path" 2>/dev/null || true
-                    done <<< "$actual_paths"
+                    done <<< "${actual_paths//$'\t'/$'\n'}"
                 fi
                 spinner_stop
                 printf "  ${ICON_OK}  Cleaned %s ${DIM}(%s)${RESET}\n" "$label" "$size_str"
@@ -172,7 +173,7 @@ run_task() {
         for expanded in $p; do
             [[ -e "$expanded" ]] || continue
             found=true
-            [[ -n "$actual_paths" ]] && actual_paths="${actual_paths}"$'\n'
+            [[ -n "$actual_paths" ]] && actual_paths="${actual_paths}"$'\t'
             actual_paths="${actual_paths}${expanded}"
             local b
             b=$(get_bytes "$expanded")
@@ -202,7 +203,8 @@ run_docker_task() {
 run_tm_task() {
     spinner_start "Checking Time Machine snapshots..."
     local TM_LIST=$(tmutil listlocalsnapshots / 2>/dev/null || true)
-    local TM_COUNT=$(echo "$TM_LIST" | grep -c 'com.apple' 2>/dev/null || echo 0)
+    local TM_COUNT
+    TM_COUNT=$(echo "$TM_LIST" | grep -c 'com.apple' 2>/dev/null) || TM_COUNT=0
     local TM_BYTES=$(get_bytes "/.MobileBackups")
     spinner_stop
     if (( TM_COUNT > 0 )); then
@@ -294,10 +296,12 @@ run_task "${ICON_WARN} iOS Device Backups" "" "${HOME_DIR}/Library/Application S
 section "Custom Path Scan (Large Files & node_modules)"
 # ════════════════════════════════════════════════════════════
 custom_path=""
-if [[ -t 1 ]]; then
+if [[ -e /dev/tty ]]; then
     echo -e "  ${DIM}Optionally enter a custom path to deep-scan for large files (>200MB)${RESET}"
     echo -e "  ${DIM}and heavy node_modules folders. Leave blank to skip.${RESET}"
-    read -rp "  Custom path (e.g. ~/Projects): " custom_path </dev/tty 2>/dev/null || custom_path=""
+    echo ""
+    echo -ne "  Custom path (e.g. ~/Projects): "
+    read -r custom_path < /dev/tty || custom_path=""
 fi
 
 if [[ -n "$custom_path" ]]; then

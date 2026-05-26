@@ -2,6 +2,7 @@
 # @name RAM Disk Downloads
 # @desc Mount a high-speed RAM disk as ~/Downloads for volatile storage
 # @sudo false
+# @os macos,linux
 # =============================================================================
 #  ram.sh — Backs up ~/Downloads, mounts a RAM disk, and symlinks Downloads → RAM disk.
 #
